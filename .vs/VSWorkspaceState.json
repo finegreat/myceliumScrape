@@ -1,11 +1,12 @@
 {
   "ExpandedNodes": [
     "",
-    "\\config",
-    "\\resources",
-    "\\resources\\views",
-    "\\resources\\views\\layouts",
-    "\\storage\\app\\public"
+    "\\app",
+    "\\database",
+    "\\database\\factories",
+    "\\database\\migrations",
+    "\\database\\seeders",
+    "\\resources"
   ],
   "PreviewInSolutionExplorer": false
 }

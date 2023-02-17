@@ -4,44 +4,37 @@ namespace App\Http\Controllers;
 
 use Goutte\Client;
 use Illuminate\Http\Request;
-use App\Models\TeamContact; // Import the TeamContact model
 use Symfony\Component\DomCrawler\Crawler;
 
 class ScraperController extends Controller
 {
-    public function scrape()
+    protected function scrape()
     {
         $client = new Client();
-        $teamContacts = TeamContact::all(); // Fetch all records from the team_contacts table
+        $crawler = $client->request('GET', 'https://www.boohoo.com');
 
-        $result = [];
+        $facebookUrls = [];
+        $twitterUrls = [];
+        $instaUrls = [];
 
-        foreach ($teamContacts as $teamContact) {
-            $website = $teamContact->website;
+        $crawler->filter('a')->each(function (Crawler $node) use (&$facebookUrls, &$twitterUrls, &$instaUrls) {
+            $href = $node->attr('href');
+            if (strpos($href, 'facebook.com') !== false || strpos($href, 'fb.com') !== false) {
+                $facebookUrls[] = $href;
+            } else if (strpos($href, 'twitter.com') !== false) {
+                $twitterUrls[] = $href;
+            } else if (strpos($href, 'instagram.com') !== false) {
+                $instaUrls[] = $href;
+            }
+        });
 
-            $crawler = $client->request('GET', $website);
+        $urls = [
+            'facebookUrls' => array_unique($facebookUrls),
+            'twitterUrls' => array_unique($twitterUrls),
+            'instaUrls' => array_unique($instaUrls),
+        ];
 
-            $facebookUrls = [];
-            $twitterUrls = [];
-
-            $crawler->filter('a:contains("Facebook"), a:contains("Twitter")')->each(function (Crawler $node) use (&$facebookUrls, &$twitterUrls) {
-                $href = $node->attr('href');
-                if (strpos($href, 'facebook.com') !== false) {
-                    $facebookUrls[] = $href;
-                } elseif (strpos($href, 'twitter.com') !== false) {
-                    $twitterUrls[] = $href;
-                }
-            });
-
-            $result[] = [
-                'id' => $teamContact->id,
-                'handle' => $teamContact->handle,
-                'website' => $website,
-                'facebookUrls' => $facebookUrls,
-                'twitterUrls' => $twitterUrls,
-            ];
-        }
-
-        return view('scraper', compact('result'));
+        return view('scraper', compact('urls'));
     }
+
 }
